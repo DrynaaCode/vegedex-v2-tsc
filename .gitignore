@@ -1,0 +1,24 @@
+# Ne pas versionner les dépendances Node.js
+node_modules/
+
+# Ne pas versionner la compilation TypeScript (si tu as un dossier dist)
+dist/
+
+# Ne pas versionner les variables d’environnement (sécurité)
+.env
+
+# Fichiers logs
+*.log
+
+# Dossiers de test Jest
+coverage/
+
+# Cache divers
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# VSCode / WebStorm
+.vscode/
+.idea/
