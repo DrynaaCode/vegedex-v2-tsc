@@ -1,0 +1,12 @@
+models/ → tous les schémas Mongoose (plante, user, etc.)
+
+controllers/ → logique métier (ex: traitement d’une identification)
+
+routes/ → déclaration des endpoints
+
+middlewares/ → fonctions entre la route et le contrôleur (auth, validation…)
+
+utils/ → fonctions utilitaires (hash, jwt, etc.)
+
+app.ts → ton fichier principal
+
