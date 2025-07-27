@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import adminRoutes from './routes/admin.routes';
+import plantRoutes from './routes/plant.routes';
 
 dotenv.config();
 
@@ -34,6 +35,8 @@ app.use(cookieParser());
 app.get('/', (_, res) => res.send('Hello Plant API!'));
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes); 
+app.use('/api/plants', plantRoutes);
+
 
 // Routes admin (à ajouter si tu as des routes admin)
 app.use('/api/admin', adminRoutes); 
