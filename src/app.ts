@@ -4,8 +4,11 @@ import helmet from 'helmet';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 
 import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
+import adminRoutes from './routes/admin.routes';
 
 dotenv.config();
 
@@ -25,10 +28,17 @@ app.use(rateLimit({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Routes
 app.get('/', (_, res) => res.send('Hello Plant API!'));
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes); 
+
+// Routes admin (à ajouter si tu as des routes admin)
+app.use('/api/admin', adminRoutes); 
+
+
 
 // Gestion d'erreur JSON mal formé
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
