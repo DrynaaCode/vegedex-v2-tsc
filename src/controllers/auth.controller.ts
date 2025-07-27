@@ -4,6 +4,7 @@ import AuditLog from '../models/audit.model';
 import { registerSchema, loginSchema } from '../validation/auth.validation';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid'; // tout en haut (pnpm add uuid)
 
 // Helper: délai anti-bruteforce
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -102,12 +103,25 @@ export async function login(req: Request, res: Response) {
         const payload = { userId: user._id, role: user.role };
         const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1h' });
 
+        // 4b. Génère un refreshToken (aléatoire, UUID ou crypto)
+        const refreshToken = uuidv4();
+        user.refreshToken = refreshToken;
+        await user.save();
+
         // 5. Cookie sécurisé (httpOnly, sameSite, secure selon env)
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: 'lax',
             maxAge: 60 * 60 * 1000 // 1h
+        });
+
+          // 5b. Cookie sécurisé pour le refreshToken (même options mais + long)
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
         });
 
         // 6. Audit trail succès
@@ -138,8 +152,23 @@ export async function login(req: Request, res: Response) {
 }
 
 
-export function logout(req: Request, res: Response) {
+export async function logout(req: Request, res: Response) {
+    // Optionnel : retrouve l'utilisateur par le refresh token
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+        // Ex: cherche le user lié à ce refreshToken et le supprime de la DB (sécurité)
+        await User.updateOne(
+            { refreshTokens: refreshToken },
+            { $pull: { refreshTokens: refreshToken } }
+        );
+    }
+    // Supprime les cookies côté client (access + refresh)
     res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: 'lax'
+    });
+    res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: 'lax'
@@ -210,4 +239,35 @@ export async function resetPassword(req: Request, res: Response) {
     });
 
     res.json({ message: "Votre mot de passe a été réinitialisé avec succès" });
+}
+
+export async function refreshToken(req: Request, res: Response) {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        return res.status(401).json({ message: 'Refresh token manquant' });
+    }
+
+    const user = await User.findOne({ refreshToken, isActive: true });
+    if (!user) {
+        return res.status(403).json({ message: 'Refresh token invalide' });
+    }
+
+    // Regénère un access token (courte durée)
+    const payload = { userId: user._id, role: user.role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1h' });
+
+    // (optionnel) Tu peux aussi renouveler le refreshToken ici !
+    // const newRefreshToken = uuidv4();
+    // user.refreshToken = newRefreshToken;
+    // await user.save();
+    // res.cookie('refreshToken', newRefreshToken, {...});
+
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 1000 // 1h
+    });
+
+    res.json({ message: "Token rafraîchi" });
 }

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
-import { updateMeSchema } from '../validation/user.validation';
+import { settingsSchema, updateMeSchema } from '../validation/user.validation';
 
 // GET /me
 export async function getMe(req: Request, res: Response) {
@@ -65,5 +65,31 @@ export async function updateMe(req: Request, res: Response) {
         });
     } catch (err: any) {
         res.status(500).json({ message: "Erreur lors de la mise à jour", error: err.message });
+    }
+}
+
+
+export async function updateSettings(req: Request, res: Response) {
+    // On attend dans body : { settings: { theme: "dark" } }
+    const { error, value } = settingsSchema.validate(req.body.settings, { abortEarly: false, stripUnknown: true });
+    if (error) {
+        return res.status(400).json({ message: "Données invalides", details: error.details.map(d => d.message) });
+    }
+
+    if (!req.user?.userId) return res.status(401).json({ message: "Non authentifié" });
+
+    try {
+        // Met à jour uniquement les sous-champs reçus
+        const user = await User.findByIdAndUpdate(
+            req.user.userId,
+            { $set: Object.entries(value).reduce((acc, [key, v]) => ({ ...acc, [`settings.${key}`]: v }), {}) },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
+
+        res.json({ message: "Paramètres mis à jour", settings: user.settings });
+    } catch (err: any) {
+        res.status(500).json({ message: "Erreur serveur", error: err.message });
     }
 }

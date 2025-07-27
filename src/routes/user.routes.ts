@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { authenticateJWT } from '../middlewares/auth.middleware';
-import { getMe, updateMe } from '../controllers/user.controller';
+import { getMe, updateMe, updateSettings } from '../controllers/user.controller';
 import { hasRole } from '../middlewares/hasRole';
+import { ensureActive } from '../middlewares/ensureActive';
 
 const router = Router();
 
-router.get('/me', authenticateJWT, getMe);
-router.patch('/me', authenticateJWT, updateMe);
+router.get('/me', authenticateJWT, ensureActive,getMe);
+router.patch('/me', authenticateJWT,ensureActive, updateMe);
+router.patch('/settings', authenticateJWT, updateSettings);
 
 
 

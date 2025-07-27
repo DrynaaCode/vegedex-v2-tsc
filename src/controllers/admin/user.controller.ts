@@ -51,6 +51,8 @@ export async function banUser(req: Request, res: Response) {
     if (req.user?.userId === userId) {
         return res.status(400).json({ message: "Impossible de se bannir soi-même." });
     }
+ 
+
 
     try {
         // Met à jour le flag isActive
@@ -61,6 +63,10 @@ export async function banUser(req: Request, res: Response) {
         ).select('-password');
 
         if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
+
+        if (user.role === 'admin') {
+        return res.status(403).json({ message: "Impossible d'agir sur un admin." });
+    }
 
         // Audit : log l'action
         await AuditLog.create({
