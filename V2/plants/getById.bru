@@ -1,0 +1,15 @@
+meta {
+  name: getById
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:3000/api/plants/{{plantId}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  plantId: 6888849c5fabcce85e51b518
+}

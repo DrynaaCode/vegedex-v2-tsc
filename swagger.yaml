@@ -1,0 +1,97 @@
+openapi: '3.0.0'
+info:
+  title: 'Vegedex API'
+  version: '1.0.0'
+  description: 'API pour Vegedex, une application pour identifier et partager des informations sur les plantes.'
+servers:
+  - url: 'http://localhost:3000'
+    description: 'Serveur de développement'
+
+# Définition du schéma de sécurité pour le cookie d'authentification
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+  schemas:
+    Plant:
+      type: object
+      required:
+        - name
+        - latinName
+      properties:
+        _id:
+          type: string
+          description: "L'ID unique de la plante généré par MongoDB."
+        name:
+          type: string
+          description: "Le nom commun de la plante."
+        latinName:
+          type: string
+          description: "Le nom latin scientifique de la plante."
+        family:
+          type: string
+          description: "La famille botanique de la plante."
+        toxic:
+          type: boolean
+          description: "Indique si la plante est toxique."
+      example:
+        _id: "60d5f2f5c7f8a8b0f8b8c5a0"
+        name: "Basilic"
+        latinName: "Ocimum basilicum"
+
+# Appliquer la sécurité à toutes les routes par défaut
+security:
+  - cookieAuth: []
+
+tags:
+  - name: Plants
+    description: Gestion des plantes
+
+paths:
+  /api/plants:
+    get:
+      tags:
+        - Plants
+      summary: Récupère une liste de plantes
+      description: Retourne une liste paginée de plantes. Les invités sont limités à 50 résultats.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Le numéro de la page.
+      responses:
+        '200':
+          description: Une liste de plantes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Plant'
+  
+  /api/plants/bulk:
+    post:
+      tags:
+        - Plants
+      summary: Crée plusieurs plantes en une seule fois
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Plant'
+      responses:
+        '201':
+          description: Les plantes ont été créées avec succès.
+        '400':
+          description: Données invalides.
+        '401':
+          description: Non authentifié.

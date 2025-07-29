@@ -1,0 +1,19 @@
+meta {
+  name: uploadImage
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/api/plants/{{plantId}}/image
+  body: multipartForm
+  auth: inherit
+}
+
+vars:pre-request {
+  plantId: 6888849c5fabcce85e51b518
+}
+
+body:multipart-form {
+  image: @file(C:\Users\Randy\Desktop\plantes\plante1.jpeg)
+}

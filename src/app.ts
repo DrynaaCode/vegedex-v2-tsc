@@ -11,9 +11,24 @@ import userRoutes from './routes/user.routes';
 import adminRoutes from './routes/admin.routes';
 import plantRoutes from './routes/plant.routes';
 
+import { ApiError, NotFoundError } from './errors/api-error';
+
+import swaggerUi from 'swagger-ui-express'; 
+import yaml from 'js-yaml'; // 👈 Importer js-yaml
+import fs from 'fs';       // 👈 Importer le module 'fs' de Node.js
+import path from 'path';   // 👈 Importer le module 'path' de Node.js   
+
+
 dotenv.config();
 
 const app = express();
+
+// --- Configuration de Swagger avec le fichier YAML ---
+// Charger le fichier swagger.yaml
+const swaggerDocument = yaml.load(
+  fs.readFileSync(path.join(__dirname, '../swagger.yaml'), 'utf8')
+) as Record<string, any>;
+
 
 // Sécurité de base
 app.use(helmet());
@@ -41,6 +56,22 @@ app.use('/api/plants', plantRoutes);
 // Routes admin (à ajouter si tu as des routes admin)
 app.use('/api/admin', adminRoutes); 
 
+//Documentation Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+
+// Routes de test (uniquement si NODE_ENV est 'test')
+if (process.env.NODE_ENV === 'test') {
+  app.get('/test/api-error', (req, res, next) => {
+    // Simule une erreur personnalisée
+    next(new NotFoundError('Ressource de test non trouvée.'));
+  });
+
+  app.get('/test/server-error', (req, res, next) => {
+    // Simule une erreur serveur générique
+    next(new Error('Erreur inattendue de test.'));
+  });
+}
 
 
 // Gestion d'erreur JSON mal formé
@@ -51,9 +82,14 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
-// Gestion d’erreur globale (optionnel, mais pro)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('Erreur serveur :', err);
+  // Si c'est une de nos erreurs personnalisées, on l'utilise
+  if (err instanceof ApiError) {
+    return res.status(err.statusCode).json({ message: err.message });
+  }
+
+  // Sinon, c'est une erreur serveur inattendue
+  console.error('Erreur serveur inattendue:', err);
   res.status(500).json({ message: 'Erreur serveur.' });
 });
 

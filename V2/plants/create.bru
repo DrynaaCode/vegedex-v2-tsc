@@ -1,0 +1,25 @@
+meta {
+  name: create
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/plants
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Basilic",
+    "latinName": "Ocimum basilicum",
+    "description": "Une herbe aromatique populaire, souvent utilisée dans la cuisine italienne.",
+    "family": "Lamiaceae",
+    "edibleParts": [
+      "feuilles",
+      "fleurs"
+    ],
+    "toxic": false
+  }
+}

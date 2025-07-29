@@ -8,8 +8,8 @@ const router = Router();
 router.post('/register', register);
 router.post('/login', validateLogin, login);
 router.post('/logout', logout);
-router.post('/auth/forgot-password', forgotPassword);
-router.post('/auth/reset-password', resetPassword);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.post('/refresh-token', refreshToken);
 
 export default router;
