@@ -12,6 +12,7 @@ uploads/
 
 # Fichiers logs
 *.log
+/logs
 
 # Dossiers de test Jest
 coverage/

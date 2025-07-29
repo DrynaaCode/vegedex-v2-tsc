@@ -1,14 +1,14 @@
 import app from './app';
 import mongoose from 'mongoose';
+import { config } from './config';
+import Logger from './logger';    
 
-const PORT = process.env.PORT || 3000;
-console.log(process.env.MONGO_URI);
-mongoose.connect(process.env.MONGO_URI!)
+mongoose.connect(config.mongoUri) 
   .then(() => {
-    console.log('Connecté à MongoDB');
-    app.listen(PORT, () => console.log(`Serveur lancé sur le port ${PORT}`));
+    Logger.info('Connecté à MongoDB');
+    app.listen(config.port, () => Logger.info(`Serveur lancé sur le port ${config.port}`));
   })
   .catch((err) => {
-    console.error('Erreur MongoDB :', err);
+    Logger.error('Erreur de connexion à MongoDB :', err);
     process.exit(1);
   });
