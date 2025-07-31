@@ -32,7 +32,10 @@ const swaggerDocument = yaml.load(
 
 // Sécurité de base
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || "*" }));
+app.use(cors({ 
+  origin: process.env.CLIENT_URL || '*', 
+  credentials: true // 👈 AJOUTEZ CETTE OPTION
+}));
 
 // Rate limiter global (tu peux personnaliser)
 app.use(
