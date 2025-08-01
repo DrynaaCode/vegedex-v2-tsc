@@ -155,29 +155,34 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export async function logout(req: Request, res: Response) {
-  // Optionnel : retrouve l'utilisateur par le refresh token
+export async function logout(req, res) {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  // Optionnel : retire le refreshToken côté DB si tu l'utilises vraiment
   const refreshToken = req.cookies.refreshToken;
   if (refreshToken) {
-    // Ex: cherche le user lié à ce refreshToken et le supprime de la DB (sécurité)
     await User.updateOne(
-      { refreshTokens: refreshToken },
-      { $pull: { refreshTokens: refreshToken } }
+      { refreshToken },
+      { $unset: { refreshToken: "" } }
     );
   }
-  // Supprime les cookies côté client (access + refresh)
+
+  // Supprime les cookies côté client (mêmes options qu'au setCookie)
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/", // Très important !
   });
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
   });
   res.json({ message: "Déconnexion réussie" });
 }
+
 
 export async function forgotPassword(req: Request, res: Response, next: NextFunction) { // Ajoutez next
   try {
