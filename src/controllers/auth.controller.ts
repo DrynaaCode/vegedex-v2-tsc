@@ -155,7 +155,7 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export async function logout(req, res) {
+export async function logout(req: Request, res: Response) {
   const isProduction = process.env.NODE_ENV === "production";
 
   // Optionnel : retire le refreshToken côté DB si tu l'utilises vraiment
